@@ -450,6 +450,8 @@ async def crawl_single_page(ctx: Context, url: str) -> str:
         Summary of the crawling operation and storage in Supabase
     """
     try:
+        print(f"🌐 Crawling single page: {url}")
+        
         # Get the crawler from the context
         crawler = ctx.request_context.lifespan_context.crawler
         supabase_client = ctx.request_context.lifespan_context.supabase_client
@@ -457,10 +459,14 @@ async def crawl_single_page(ctx: Context, url: str) -> str:
         # Configure the crawl
         run_config = CrawlerRunConfig(cache_mode=CacheMode.BYPASS, stream=False)
         
+        print(f"📄 Processing content...")
         # Crawl the page
         result = await crawler.arun(url=url, config=run_config)
         
         if result.success and result.markdown:
+            print(f"✅ Successfully crawled page")
+            print(f"📝 Chunking and storing content...")
+            
             # Extract source_id
             parsed_url = urlparse(url)
             source_id = parsed_url.netloc or parsed_url.path
@@ -597,6 +603,8 @@ async def smart_crawl_url(ctx: Context, url: str, max_depth: int = 3, max_concur
         JSON string with crawl summary and storage information
     """
     try:
+        print(f"🚀 Starting smart crawl for: {url}")
+        
         # Get the crawler from the context
         crawler = ctx.request_context.lifespan_context.crawler
         supabase_client = ctx.request_context.lifespan_context.supabase_client
@@ -607,10 +615,12 @@ async def smart_crawl_url(ctx: Context, url: str, max_depth: int = 3, max_concur
         
         if is_txt(url):
             # For text files, use simple crawl
+            print(f"📄 Processing text file: {url}")
             crawl_results = await crawl_markdown_file(crawler, url)
             crawl_type = "text_file"
         elif is_sitemap(url):
             # For sitemaps, extract URLs and crawl in parallel
+            print(f"🗺️  Processing sitemap: {url}")
             sitemap_urls = parse_sitemap(url)
             if not sitemap_urls:
                 return json.dumps({
@@ -618,19 +628,25 @@ async def smart_crawl_url(ctx: Context, url: str, max_depth: int = 3, max_concur
                     "url": url,
                     "error": "No URLs found in sitemap"
                 }, indent=2)
+            print(f"📊 Found {len(sitemap_urls)} URLs in sitemap")
             crawl_results = await crawl_batch(crawler, sitemap_urls, max_concurrent=max_concurrent)
             crawl_type = "sitemap"
         else:
             # For regular URLs, use recursive crawl
+            print(f"🌐 Processing webpage recursively: {url}")
             crawl_results = await crawl_recursive_internal_links(crawler, [url], max_depth=max_depth, max_concurrent=max_concurrent)
             crawl_type = "webpage"
         
         if not crawl_results:
+            print(f"❌ No content found for: {url}")
             return json.dumps({
                 "success": False,
                 "url": url,
                 "error": "No content found"
             }, indent=2)
+        
+        print(f"✅ Successfully crawled {len(crawl_results)} pages")
+        print(f"📝 Processing and storing content...")
         
         # Process results and store in Supabase
         urls = []
@@ -644,7 +660,8 @@ async def smart_crawl_url(ctx: Context, url: str, max_depth: int = 3, max_concur
         source_word_counts = {}
         
         # Process documentation chunks
-        for doc in crawl_results:
+        for i, doc in enumerate(crawl_results):
+            print(f"📄 Processing page {i+1}/{len(crawl_results)}: {doc['url'][:60]}...")
             source_url = doc['url']
             md = doc['markdown']
             chunks = smart_chunk_markdown(md, chunk_size=chunk_size)

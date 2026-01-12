@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with pgvector extension
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: orn-postgres-crawl4ai
+    environment:
+      POSTGRES_DB: crawl4ai_rag
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"  # Use 5433 to avoid conflicts
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./crawled_pages.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - crawl4ai-network
+
+  # Neo4j for knowledge graph functionality
+  neo4j:
+    image: neo4j:5.15-community
+    container_name: orn-neo4j-crawl4ai
+    environment:
+      NEO4J_AUTH: neo4j/crawl4ai_password
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    networks:
+      - crawl4ai-network
+
+volumes:
+  postgres_data:
+  neo4j_data:
+  neo4j_logs:
+
+networks:
+  crawl4ai-network:
+    driver: bridge

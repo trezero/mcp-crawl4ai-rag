@@ -1,0 +1,17 @@
+INFO:     Started server process [2139305]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8051 (Press CTRL+C to quit)
+✓ GPU initialized: NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition
+✓ CUDA capability: (12, 0)
+INFO:     127.0.0.1:60450 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59202 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59212 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:39796 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:39806 - "GET /tools HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:45514 - "POST /message HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42714 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [2139305]
